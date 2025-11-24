@@ -1,0 +1,29 @@
+# Python Caches and Environment
+# -----------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+# The entire virtual environment folder
+/venv
+
+# Database/Logs
+# -------------
+# Local database files are specific to your machine and development state
+*.db
+*.sqlite
+books.db
+# logs
+*.log
+
+# Environment Variables (CRITICAL for Security)
+# ---------------------------------------------
+# Contains sensitive API keys and passwords (e.g., SMTP_SENDER_PASSWORD)
+.env 
+
+# Operating System Specific Files
+# -------------------------------
+.DS_Store # Mac OS X
+Thumbs.db # Windows
