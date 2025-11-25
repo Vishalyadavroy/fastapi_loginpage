@@ -8,7 +8,8 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)   
     password = Column(String)
-    is_verified = Column(Integer, default=0)         
+    is_verified = Column(Integer, default=0)   
+    otp = Column(String, nullable=True)       
 
 class Book(Base):
     __tablename__ = "books"

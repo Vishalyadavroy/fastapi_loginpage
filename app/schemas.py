@@ -63,3 +63,11 @@ class Book(BookBase):
 class UserLogin(BaseModel):
     username: str
     password: str
+
+# //otp section 
+class SendOTP(BaseModel):
+    email: EmailStr
+
+class VerifyOTP(BaseModel):
+    email: EmailStr
+    otp: str

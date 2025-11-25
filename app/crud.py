@@ -8,7 +8,6 @@ from sqlalchemy import func
 
 def create_user(db: Session, user: schemas.UserCreate):
     hashed_password = generate_password_hash(user.password)
-    # 👇 FIX: Added 'email=user.email' to save the email address
     db_user = models.User(
         username=user.username, 
         email=user.email,  
@@ -57,3 +56,26 @@ def create_book(db: Session, book: schemas.BookCreate):
     return db_book
 
 # ... (rest of book CRUD functions: get_books, get_book, update_book, delete_book) ...
+# curd operation for the otp
+import random
+
+def generate_otp():
+    return str(random.randint(100000, 999999))
+
+def save_otp(db: Session, email: str, otp: str):
+    user = get_user_by_email(db, email)
+    if user:
+        user.otp = otp
+        db.commit()
+        db.refresh(user)
+    return user
+
+def verify_otp_code(db: Session, email: str, otp: str):
+    user = get_user_by_email(db, email)
+    if user and user.otp == otp:
+        user.is_verified = 1
+        user.otp = None  # Clear OTP once verified
+        db.commit()
+        db.refresh(user)
+        return True
+    return False

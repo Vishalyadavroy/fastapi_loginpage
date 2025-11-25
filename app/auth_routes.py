@@ -30,6 +30,15 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     crud.create_user(db, user)
     return {"message": "User created successfully"}
 
+@router.post("/login", response_model=schemas.Token)
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    auth_user = crud.authenticate_user(db, form_data.username, form_data.password)
+    if not auth_user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    token = create_access_token({"sub": auth_user.username})
+    return {"access_token": token, "token_type": "bearer"}
+
 
 
 #new added 
@@ -114,14 +123,7 @@ def reset_password(data: schemas.ResetPassword, db: Session = Depends(get_db)):
 #     token = create_access_token({"sub": auth_user.username})
 #     return {"access_token": token, "token_type": "bearer"}
 
-@router.post("/login", response_model=schemas.Token)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    auth_user = crud.authenticate_user(db, form_data.username, form_data.password)
-    if not auth_user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    token = create_access_token({"sub": auth_user.username})
-    return {"access_token": token, "token_type": "bearer"}
 
 
 
@@ -134,3 +136,28 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     
     crud.verify_user_email(db, email)
     return {"message": "Email verified successfully"}
+
+
+# otp auth
+@router.post("/send-otp")
+def send_otp(data: schemas.SendOTP, db: Session = Depends(get_db)):
+    user = crud.get_user_by_email(db, data.email)
+    if not user:
+        raise HTTPException(status_code=404, detail="Email not registered")
+
+    otp = crud.generate_otp()
+    crud.save_otp(db, data.email, otp)
+
+    message = f"Your OTP for email verification is: {otp}. It is valid for 10 minutes."
+    send_email(data.email, "Your OTP Code", message)
+
+    return {"message": "OTP sent successfully to email"}
+
+
+# //otp verify api
+@router.post("/verify-otp")
+def verify_otp(data: schemas.VerifyOTP, db: Session = Depends(get_db)):
+    valid = crud.verify_otp_code(db, data.email, data.otp)
+    if not valid:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+    return {"message": "OTP Verified Successfully"}
