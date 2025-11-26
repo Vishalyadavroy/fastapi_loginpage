@@ -79,3 +79,34 @@ def verify_otp_code(db: Session, email: str, otp: str):
         db.refresh(user)
         return True
     return False
+
+
+# admin curd operations
+def create_admin(db:Session , admin:schemas.AdminCreate):
+    hashed_password = generate_password_hash(admin.password)
+    db_admin = models.Admin(
+        username = admin.username,
+        email =admin.email,
+        password = hashed_password
+        
+    )
+    db.add(db_admin)
+    db.commit()
+    db.refresh(db_admin)
+    return db_admin
+
+def authenticate_admin(db:Session, username: str, password:str):
+    admin = db.query(models.Admin).filter(models.Admin.username == username).first()
+    if not admin or not check_password_hash(admin.password, password):
+        return None
+    return admin
+    
+def get_admin_by_username(db:Session , username:str):
+    return db.query(models.Admin).filter(models.Admin.username == username).first()
+
+# get all the admins and users
+def get_all_admins(db:Session):
+    return db.query(models.Admin).all()
+
+def get_all_users(db:Session):
+    return db.query(models.User).all()

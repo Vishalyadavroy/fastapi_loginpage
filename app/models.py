@@ -9,7 +9,8 @@ class User(Base):
     email = Column(String, unique=True, index=True)   
     password = Column(String)
     is_verified = Column(Integer, default=0)   
-    otp = Column(String, nullable=True)       
+    otp = Column(String, nullable=True)     
+    role = Column(String, default="user")   
 
 class Book(Base):
     __tablename__ = "books"
@@ -17,3 +18,11 @@ class Book(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)
     author = Column(String)
+    
+class Admin(Base):
+    __tablename__ = "admins"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    password = Column(String)

@@ -71,3 +71,24 @@ class SendOTP(BaseModel):
 class VerifyOTP(BaseModel):
     email: EmailStr
     otp: str
+
+
+# Admin schema
+from pydantic import BaseModel, EmailStr
+
+class AdminBase(BaseModel):
+    username: str
+    email: EmailStr
+
+class AdminCreate(AdminBase):
+    password: str
+
+class AdminOut(AdminBase):
+    id: int
+    class Config:
+        orm_mode = True
+
+class AdminLogin(BaseModel):
+    username: str
+    password: str
+ 

@@ -2,13 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app import schemas, crud
-from app.auth import ALGORITHM, SECRET_KEY, create_access_token, create_reset_token, verify_reset_token
+from app.auth import ALGORITHM, SECRET_KEY, admin_required, create_access_token, create_reset_token, verify_reset_token
 from app.email_utils import send_email
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 from werkzeug.security import check_password_hash
 from app.auth import SECRET_KEY, ALGORITHM
+from app.auth import create_access_token
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -36,7 +37,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     if not auth_user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    token = create_access_token({"sub": auth_user.username})
+    token = create_access_token({"sub": auth_user.username })
     return {"access_token": token, "token_type": "bearer"}
 
 
@@ -138,26 +139,34 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     return {"message": "Email verified successfully"}
 
 
-# otp auth
-@router.post("/send-otp")
-def send_otp(data: schemas.SendOTP, db: Session = Depends(get_db)):
-    user = crud.get_user_by_email(db, data.email)
-    if not user:
-        raise HTTPException(status_code=404, detail="Email not registered")
+# this router for Admin
 
-    otp = crud.generate_otp()
-    crud.save_otp(db, data.email, otp)
+# router = APIRouter(prefix="/admin" , tags=["Admin"])
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
 
-    message = f"Your OTP for email verification is: {otp}. It is valid for 10 minutes."
-    send_email(data.email, "Your OTP Code", message)
+# @router.get("/dashboard")
+# def admin_dashboard(token: str = Depends(admin_required)):
+#     return {"message": "Welcome Admin!"}
 
-    return {"message": "OTP sent successfully to email"}
 
 
-# //otp verify api
-@router.post("/verify-otp")
-def verify_otp(data: schemas.VerifyOTP, db: Session = Depends(get_db)):
-    valid = crud.verify_otp_code(db, data.email, data.otp)
-    if not valid:
-        raise HTTPException(status_code=400, detail="Invalid OTP")
-    return {"message": "OTP Verified Successfully"}
+# @router.post("/create")
+# def create_admin(admin:schemas.AdminCreate ,db:Session = Depends(get_db)):
+#     existing = crud.get_admin_y_user(db, admin.username)
+#     if existing:
+#          raise HTTPException(status_code=400 , detail="Admin username already exists")
+#     return crud.create_admin(db, admin)
+
+# @router.post("/login")
+# def login_admin(data: schemas.AdminLogin, db: Session = Depends(get_db)):
+#     admin = crud.authenticate_admin(db, data.username, data.password)
+#     if not admin:
+#         raise HTTPException(status_code=401, detail="Invalid username or password")
+
+#     token = create_access_token({"sub": admin.username, "role": "admin"})
+#     return {"access_token": token, "token_type": "bearer"}

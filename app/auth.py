@@ -34,3 +34,17 @@ def verify_reset_token(token: str):
     except:
         return None
 # phkt rksm rzqs iwxl
+
+
+from fastapi import Depends, HTTPException
+from jose import jwt, JWTError
+from app.auth import SECRET_KEY, ALGORITHM
+
+
+def admin_required(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("role") != "admin":
+            raise HTTPException(status_code=403, detail="Admin access only")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid Token")
